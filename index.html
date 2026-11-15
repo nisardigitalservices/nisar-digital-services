@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="NISAR DIGITAL SERVICES – All India government and digital service information portal">
+<title>NISAR DIGITAL SERVICES | Service Portal</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+ <a class="brand" href="#"><span class="logo">N</span><span><b>NISAR DIGITAL SERVICES</b><small>ALL INDIA DIGITAL SERVICE PORTAL</small></span></a>
+ <nav><a href="#quick">Quick Links</a><a href="#trending">Trending</a><a href="#services">Govt. Services</a><a href="recharge.html">Wallet Recharge</a><a href="#support">Support</a></nav>
+ <a class="login" href="#support">CUSTOMER HELP</a>
+</header>
+<main>
+<section class="welcome">
+ <div><span class="eyebrow">🇮🇳 ONE PLATFORM • ALL INDIA</span><h1>Welcome to <em>NISAR DIGITAL SERVICES</em></h1><p>Find government service information, state-wise portals and digital assistance in one place.</p></div>
+ <div class="welcome-badge"><b>ALL INDIA</b><small>36 States & UTs directory</small></div>
+</section>
+<section id="quick" class="panel">
+ <div class="section-head"><div><span class="eyebrow">PERSONAL QUICK LINKS</span><h2>Top 8 Used By Me</h2><p>Your frequently used service shortcuts.</p></div><span class="small-pill">QUICK ACCESS</span></div>
+ <div id="quickLinks" class="tile-grid"></div>
+</section>
+<section id="trending" class="panel">
+ <div class="section-head"><div><span class="eyebrow">🔥 COMPETITOR / STATE DEMAND</span><h2>Trending in AP</h2><p>Popular service topics in Andhra Pradesh. Official availability may vary.</p></div><span class="small-pill hot">TRENDING</span></div>
+ <div id="trending" class="tile-grid"></div>
+</section>
+<section class="panel">
+ <div class="section-head"><div><span class="eyebrow">🇮🇳 MULTI-STATE DEMAND</span><h2>All India Revenue & Citizen Services</h2><p>Ration card, voter, vehicle, PAN, certificates and citizen services.</p></div></div>
+ <div class="feature-strip"><span>🍚 Ration Card Services</span><span>🗳️ Voter Card Services</span><span>🚗 Vehicle Services</span><span>🧾 e-PAN Services</span><span>📄 State Certificates</span></div>
+</section>
+<section id="new" class="panel">
+ <div class="section-head"><div><span class="eyebrow">🆕 START EARLY</span><h2>New Services</h2><p>Recently added service information and shortcuts.</p></div><span class="small-pill">NEW</span></div>
+ <div id="newServices" class="tile-grid"></div>
+</section>
+<section id="services" class="panel service-panel">
+ <div class="section-head"><div><span class="eyebrow">GOVT. SERVICES</span><h2>Explore All Services</h2><p>Quick filters • tap category or search service.</p></div><span class="small-pill">SEARCH DIRECTORY</span></div>
+ <div class="searchbar"><span>⌕</span><input id="search" placeholder="Quick search services..." aria-label="Search services"><button id="clearSearch">CLEAR</button></div>
+ <div id="filters" class="filters"></div>
+ <div class="result-head"><b id="resultCount">Loading services…</b><span>Information & official portal guidance</span></div>
+ <div id="serviceList" class="service-list"></div>
+</section>
+<section class="panel"><div class="section-head"><div><span class="eyebrow">RETAILER / DISTRIBUTOR</span><h2>Wallet Recharge</h2><p>Recharge from ₹100 to ₹3,000 using Paytm or Airtel Payments Bank QR. Wallet credit after payment verification.</p></div><a class="login" href="recharge.html">RECHARGE NOW</a></div></section>
+<section id="support" class="support">
+ <div><span class="eyebrow">CUSTOMER SUPPORT</span><h2>Need help with a service?</h2><p>Contact NISAR DIGITAL SERVICES for assistance. Never share OTPs, passwords or confidential credentials.</p></div>
+ <div class="support-actions"><a id="supportWa" class="wa" href="https://wa.me/919346551871" target="_blank" rel="noopener">WhatsApp: 9346551871</a><a class="call" href="tel:+919346551871">Call Now</a></div>
+</section>
+</main>
+<footer><b>NISAR DIGITAL SERVICES</b><p>Independent service information portal. Not affiliated with any government department. Service availability, eligibility, official fees and authorization requirements vary by department and state.</p><small>No banking services. No OTP bypass, unauthorized downloads, or access to private records.</small></footer>
+<dialog id="serviceModal"><button id="closeModal" class="x">×</button><span class="eyebrow">SERVICE INFORMATION</span><h2 id="modalTitle"></h2><p id="modalCategory" class="modal-cat"></p><p id="modalText"></p><button id="closeModal2" class="wa" onclick="document.getElementById('serviceModal').close()">CLOSE</button></dialog>
+<script src="app.js"></script>
+
+<section id="live-registration" style="max-width:1050px;margin:24px auto;padding:20px;border:1px solid #dce5ef;border-radius:14px">
+<h2>Live User Registration</h2><p><strong id="regCount" style="font-size:28px">—</strong> / 1,000 registered users</p>
+<div style="height:10px;background:#e8edf4;border-radius:9px"><div id="regBar" style="height:10px;width:0;background:#1769d2"></div></div>
+<p id="regStatus">Backend connection required for live count.</p>
+<form id="regForm"><input name="name" placeholder="Full name" required maxlength="80"><input name="mobile" placeholder="10-digit mobile number" inputmode="numeric" pattern="[0-9]{10}" required><button type="submit">Register</button></form>
+<p id="regMessage" aria-live="polite"></p><small>After 1,000 registrations, new applicants are added to the waiting list.</small></section>
+<div style="position:fixed;right:14px;bottom:14px;z-index:999;background:white;border:1px solid #ccd6e3;border-radius:14px;padding:12px;width:min(290px,calc(100vw - 36px));box-shadow:0 5px 24px #0002">
+<strong>NISAR Auto Assistant</strong><p id="botReply" style="font-size:13px">Hello! Ask about services, registration, fees or helpdesk.</p>
+<form id="botForm"><input id="botQuestion" placeholder="Type your question" required maxlength="250"><button>Send</button></form><small>Call / WhatsApp: 9346551871</small></div>
+<script>
+(function(){
+const count=document.getElementById('regCount'),bar=document.getElementById('regBar'),status=document.getElementById('regStatus');
+async function refresh(){try{const r=await fetch('/api/registrations/count');if(!r.ok)throw Error();const d=await r.json();count.textContent=d.registered.toLocaleString();bar.style.width=Math.min(100,d.registered/10)+'%';status.textContent=d.registered>=1000?'Registration limit reached. New users join the waiting list.':(1000-d.registered)+' registration slots available.';}catch(e){status.textContent='Backend connection required for live count.';}}
+refresh();setInterval(refresh,15000);
+document.getElementById('regForm').addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,m=document.getElementById('regMessage');m.textContent='Submitting…';try{const r=await fetch('/api/registrations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(f)))});const d=await r.json();if(!r.ok)throw Error(d.message);m.textContent=d.status==='waiting'?'Limit reached. Added to waiting list (#'+d.number+').':'Registration successful (#'+d.number+').';f.reset();refresh();}catch(x){m.textContent=x.message||'Backend connection required.';}});
+document.getElementById('botForm').addEventListener('submit',e=>{e.preventDefault();const q=document.getElementById('botQuestion'),s=q.value.toLowerCase();let a='I can help with services, registration and fees. Call/WhatsApp 9346551871.';if(/hello|hi|namaste/.test(s))a='Hello! Welcome to NISAR DIGITAL SERVICES.';else if(/fee|price|charge|payment/.test(s))a='NISAR service charge is ₹20 plus the verified official department fee. Government fees may vary.';else if(/register|waiting|count/.test(s))a='The first 1,000 users get regular registration. Further applicants join the waiting list.';else if(/service|available/.test(s))a='Please browse the service catalogue. Live government integrations require authorized provider access.';else if(/contact|whatsapp|call/.test(s))a='Call or WhatsApp 9346551871.';document.getElementById('botReply').textContent=a;q.value='';});
+})();
+</script>
+
+</body></html>

@@ -48,17 +48,35 @@ async function connectNisarAPI() {
 
     const result = await response.json();
 
-    if (Array.isArray(result.services)) {
-      catalog.services = result.services;
+if (Array.isArray(result.services)) {
+  const grouped = new Map();
 
+  result.services.forEach(service => {
+    const category = service.category || "Other Services";
 
-      
-      renderCategories();
-      renderServices();
-
-      console.log("NISAR API connected successfully!");
+    if (!grouped.has(category)) {
+      grouped.set(category, []);
     }
-  } catch (error) {
+
+    grouped.get(category).push(service);
+  });
+
+  catalog.splice(
+    0,
+    catalog.length,
+    ...Array.from(grouped, ([name, services]) => ({
+      name,
+      icon: "📄",
+      services
+    }))
+  );
+
+  renderCategories();
+  renderServices();
+
+  console.log("NISAR services loaded:", result.services.length);
+}    
+} catch (error) {
     console.error("NISAR API Error:", error);
   }
 }

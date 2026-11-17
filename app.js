@@ -40,8 +40,7 @@ const NISAR_API_URL = "https://nisar-digital-services-api.onrender.com";
 
 async function connectNisarAPI() {
   try {
-const response = await fetch(${NISAR_API_URL}/api/services);
-
+const response = await fetch(NISAR_API_URL + "/api/services");
         if (!response.ok) {
             throw new Error("API connection failed");
         }

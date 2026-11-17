@@ -21,3 +21,6 @@ app.post('/api/admin/recharges/:id/approve',admin,(req,res)=>{const d=load();con
 app.post('/api/admin/recharges/:id/reject',admin,(req,res)=>{const d=load();const item=d.requests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({message:'Recharge request not found'});if(item.status!=='Pending')return res.status(409).json({message:'Request is already processed'});item.status='Rejected';item.rejectedAt=new Date().toISOString();save(d);res.json({message:'Request rejected'});});
 app.post('/api/enquiries',(req,res)=>res.status(501).json({message:'Secure enquiry storage is not enabled yet. Add database, consent, validation and admin authentication before production.'}));
 const port=process.env.PORT||3000;app.listen(port,()=>console.log(`NISAR API running at http://localhost:${port}`));
+app.get("/", (req, res) => {
+  res.send("NISAR DIGITAL SERVICES API is running successfully!");
+});

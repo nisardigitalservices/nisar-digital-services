@@ -40,45 +40,48 @@ const NISAR_API_URL = "https://nisar-digital-services-api.onrender.com";
 
 async function connectNisarAPI() {
   try {
-    const response = await fetch(${NISAR_API_URL}/api/services);
+const response = await fetch(${NISAR_API_URL}/api/services);
 
-    if (!response.ok) {
-      throw new Error("API connection failed");
+        if (!response.ok) {
+            throw new Error("API connection failed");
+        }
+
+        const result = await response.json();
+
+        if (!Array.isArray(result.services)) {
+            throw new Error("Services data is missing");
+        }
+
+        const grouped = new Map();
+
+        result.services.forEach(service => {
+            const category = service.category || "Other Services";
+
+            if (!grouped.has(category)) {
+                grouped.set(category, []);
+            }
+
+            grouped.get(category).push(service);
+        });
+
+        catalog.splice(
+            0,
+            catalog.length,
+            ...Array.from(grouped, ([name, services]) => ({
+                name,
+                icon: "📁",
+                services
+            }))
+        );
+
+        renderCategories();
+        renderServices();
+
+        console.log("NISAR services loaded:", result.services.length);
+
+    } catch (error) {
+        console.error("NISAR API Error:", error);
     }
-
-    const result = await response.json();
-
-if (Array.isArray(result.services)) {
-  const grouped = new Map();
-
-  result.services.forEach(service => {
-    const category = service.category || "Other Services";
-
-    if (!grouped.has(category)) {
-      grouped.set(category, []);
-    }
-
-    grouped.get(category).push(service);
-  });
-
-  catalog.splice(
-    0,
-    catalog.length,
-    ...Array.from(grouped, ([name, services]) => ({
-      name,
-      icon: "📄",
-      services
-    }))
-  );
-
-  renderCategories();
-  renderServices();
-
-  console.log("NISAR services loaded:", result.services.length);
-}    
-} catch (error) {
-    console.error("NISAR API Error:", error);
-  }
 }
 
 connectNisarAPI();

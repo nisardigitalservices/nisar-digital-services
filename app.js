@@ -35,3 +35,32 @@ $("clearSearch").onclick=()=>{$("search").value="";query="";renderServices();};
 $("closeModal").onclick=()=>$("serviceModal").close();
 renderTiles("quickLinks",quick);renderTiles("trending",trending);renderTiles("newServices",fresh);renderCategories();renderServices();
 $("supportWa").href="https://wa.me/919346551871";
+// NISAR DIGITAL SERVICES API CONNECTION
+const NISAR_API_URL = "https://nisar-digital-services-api.onrender.com";
+
+async function connectNisarAPI() {
+  try {
+    const response = await fetch(${NISAR_API_URL}/api/services);
+
+    if (!response.ok) {
+      throw new Error("API connection failed");
+    }
+
+    const result = await response.json();
+
+    if (Array.isArray(result.services)) {
+      catalog.services = result.services;
+
+
+      
+      renderCategories();
+      renderServices();
+
+      console.log("NISAR API connected successfully!");
+    }
+  } catch (error) {
+    console.error("NISAR API Error:", error);
+  }
+}
+
+connectNisarAPI();

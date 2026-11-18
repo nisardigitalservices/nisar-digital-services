@@ -24,7 +24,7 @@ pool.on('error', (error) => {
   console.error('Unexpected database error:', error.message);
 });
 
-// Existing recharge data file
+// Recharge data file
 const DATA = path.join(__dirname, 'recharge-data.json');
 
 function load() {
@@ -71,7 +71,7 @@ app.get('/', (req, res) => {
   res.send('NISAR DIGITAL SERVICES API is running successfully!');
 });
 
-// Basic health check
+// Health check
 app.get('/api/health', (req, res) => {
   res.json({
     ok: true,
@@ -82,7 +82,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// PostgreSQL database health check
+// Database health check
 app.get('/api/db-health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
@@ -108,7 +108,7 @@ app.get('/api/categories', (req, res) => {
   res.json(catalog.categories);
 });
 
-// Search and get services
+// Search services
 app.get('/api/services', (req, res) => {
   const q = String(req.query.q || '').toLowerCase();
   const category = req.query.category;
@@ -187,7 +187,6 @@ app.post('/api/recharge/submit', (req, res) => {
   }
 
   const data = load();
-
   const id = 'NDS' + Date.now().toString();
 
   data.requests.push({
@@ -297,7 +296,7 @@ app.post('/api/admin/recharges/:id/reject', admin, (req, res) => {
   });
 });
 
-// Enquiries endpoint - not enabled yet
+// Enquiries endpoint
 app.post('/api/enquiries', (req, res) => {
   res.status(501).json({
     message: 'Secure enquiry storage is not enabled yet.'
@@ -324,4 +323,5 @@ app.use((error, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-console.log(`NISAR API running on port $DIL0`);
+  console.log(NISAR API running on port ${PORT});
+});

@@ -321,6 +321,6 @@ app.use((error, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-console.log(NISAR API running on port $DIL1);
+  console.log(NISAR API running on port ${PORT});
+});

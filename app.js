@@ -44,14 +44,14 @@ function esc(value) {
 
 if ($('state')) {
   $('state').innerHTML = states.map(s =>
-    <option value="${esc(s)}">${esc(s)}</option>
+    `<option value="${esc(s)}">${esc(s)}</option>`
   ).join('');
 }
 
 if ($('partnerState')) {
   $('partnerState').innerHTML = states
     .filter(s => s !== 'All India')
-    .map(s => <option value="${esc(s)}">${esc(s)}</option>)
+    .map(s => `<option value="${esc(s)}">${esc(s)}</option>`)
     .join('');
 }
 
@@ -66,7 +66,17 @@ async function load() {
   try {
     if (count) count.textContent = 'Loading services...';
 
-    const response = await fetch(apiUrl('/api/services'));
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    let response;
+    try {
+      response = await fetch(apiUrl('/api/services'), {
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json' }
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       throw new Error('Backend response error: ' + response.status);
@@ -75,7 +85,7 @@ async function load() {
     const data = await response.json();
 
     // Backend may return {total: 2496, services: [...]}
-    all = Array.isArray(data) ? data : data.services;
+    all = Array.isArray(data) ? data : data && data.services;
 
     if (!Array.isArray(all)) {
       throw new Error('Services data format is incorrect.');
@@ -94,7 +104,7 @@ async function load() {
 
     if (count) {
       count.textContent =
-        'Services could not load. Please check the Render API connection.';
+        'Services could not load: ' + (error.name === 'AbortError' ? 'API timed out.' : error.message);
     }
 
     if (servicesBox) {
@@ -165,7 +175,7 @@ function render() {
   if (count) {
     count.textContent =
       `Showing ${list.length.toLocaleString()} of ` +
-      ${all.length.toLocaleString()} services • ${selectedState};
+      `${all.length.toLocaleString()} services • ${selectedState}`;
   }
 
   servicesBox.innerHTML = list.slice(0, 120).map(service => `

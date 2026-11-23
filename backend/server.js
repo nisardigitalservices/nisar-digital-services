@@ -25,7 +25,26 @@ pool.on('error', (error) => {
 });
 
 // Recharge data file
-const DATA = path.join(__dirname, 'recharge-data.json');
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+fs.mkdirSync(DATA_DIR, { recursive: true });
+const DATA = path.join(DATA_DIR, 'recharge-data.json');
+const SERVICE_REQUESTS_FILE = path.join(DATA_DIR, 'service-requests.json');
+const PARTNER_REGISTRATIONS_FILE = path.join(DATA_DIR, 'partner-registrations.json');
+
+function readArray(file) {
+  try {
+    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+function writeArray(file, value) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const temp = file + '.tmp';
+  fs.writeFileSync(temp, JSON.stringify(value, null, 2));
+  fs.renameSync(temp, file);
+}
 
 function load() {
   try {
@@ -294,6 +313,61 @@ app.post('/api/admin/recharges/:id/reject', admin, (req, res) => {
   res.json({
     message: 'Recharge request rejected.'
   });
+});
+
+
+// Save a service application draft (does not submit to government portals).
+app.post('/api/service-requests', (req, res) => {
+  const body = req.body || {};
+  const name = String(body.name || '').trim().slice(0, 80);
+  const mobile = String(body.mobile || '');
+  const partnerMobile = String(body.partnerMobile || '');
+  const serviceId = String(body.serviceId || '').slice(0, 100);
+  const serviceName = String(body.serviceName || '').slice(0, 200);
+  if (name.length < 2 || !/^\d{10}$/.test(mobile) ||
+      !['Retailer', 'Distributor'].includes(body.role) ||
+      !/^\d{10}$/.test(partnerMobile) || !serviceId || !serviceName) {
+    return res.status(400).json({ message: 'Please enter valid customer, partner and service details.' });
+  }
+  const items = readArray(SERVICE_REQUESTS_FILE);
+  const reference = 'NDS-SRV-' + Date.now().toString();
+  items.push({
+    reference, name, mobile, role: body.role, partnerMobile,
+    serviceId, serviceName, category: String(body.category || '').slice(0, 120),
+    state: String(body.state || '').slice(0, 100),
+    governmentFee: Math.max(0, Number(body.governmentFee) || 0),
+    nisarCharge: 50, totalFee: Math.max(0, Number(body.governmentFee) || 0) + 50,
+    details: String(body.details || '').slice(0, 500),
+    status: 'Draft saved', createdAt: new Date().toISOString()
+  });
+  writeArray(SERVICE_REQUESTS_FILE, items);
+  res.status(201).json({ message: 'Service request draft saved.', reference });
+});
+
+// Retailer / Distributor registration applications.
+app.post('/api/partner-registrations', (req, res) => {
+  const body = req.body || {};
+  const name = String(body.name || '').trim().slice(0, 80);
+  const mobile = String(body.mobile || '');
+  const role = String(body.role || '');
+  const state = String(body.state || '').slice(0, 100);
+  if (name.length < 2 || !/^[6-9]\d{9}$/.test(mobile) ||
+      !['Retailer', 'Distributor'].includes(role) || !state) {
+    return res.status(400).json({ message: 'Enter a valid name, Indian mobile number, partner type and state.' });
+  }
+  const items = readArray(PARTNER_REGISTRATIONS_FILE);
+  if (items.some(x => x.mobile === mobile && x.status !== 'Rejected')) {
+    return res.status(409).json({ message: 'An application for this mobile number already exists.' });
+  }
+  const reference = 'NDS-PART-' + Date.now().toString();
+  items.push({
+    reference, name, mobile, role, state,
+    city: String(body.city || '').slice(0, 80),
+    email: String(body.email || '').slice(0, 120),
+    status: 'Pending review', createdAt: new Date().toISOString()
+  });
+  writeArray(PARTNER_REGISTRATIONS_FILE, items);
+  res.status(201).json({ message: 'Registration application received.', reference });
 });
 
 // Enquiries endpoint

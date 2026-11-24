@@ -38,6 +38,39 @@ function esc(value) {
   })[c]);
 }
 
+// Official government destinations for commonly used services.
+// The current 2,496-service catalogue does not contain per-service URLs;
+// unmatched entries use the National Government Services Portal directory.
+function getOfficialServiceUrl(serviceName, category) {
+  const text = `${serviceName || ''} ${category || ''}`.toLowerCase();
+  const routes = [
+    [/aadhaar|aadhar|uidai/, 'https://myaadhaar.uidai.gov.in/'],
+    [/\bpan\b|income tax|e-pan/, 'https://www.incometax.gov.in/iec/foportal/'],
+    [/voter|elector|epic/, 'https://voters.eci.gov.in/'],
+    [/passport/, 'https://www.passportindia.gov.in/psp/'],
+    [/driving licence|driving license|vehicle|\brc\b|parivahan|challan/, 'https://parivahan.gov.in/'],
+    [/digilocker|digital locker/, 'https://www.digilocker.gov.in/'],
+    [/pm.?kisan|kisan samman/, 'https://pmkisan.gov.in/'],
+    [/epfo|provident fund|\bpf\b|uan|pension claim/, 'https://www.epfindia.gov.in/'],
+    [/e.?shram|unorganised worker/, 'https://eshram.gov.in/'],
+    [/ayushman|pm.?jay|health id|abha/, 'https://beneficiary.nha.gov.in/'],
+    [/scholarship|national scholarship/, 'https://scholarships.gov.in/'],
+    [/gst|goods and services tax/, 'https://www.gst.gov.in/'],
+    [/udyam|msme|enterprise registration/, 'https://udyamregistration.gov.in/'],
+    [/ration|nfsa|food security|one nation one ration/, 'https://nfsa.gov.in/'],
+    [/birth certificate|death certificate|civil registration/, 'https://crsorgi.gov.in/'],
+    [/mgnrega|nrega|job card/, 'https://nrega.nic.in/'],
+    [/consumer complaint|consumer helpline/, 'https://consumerhelpline.gov.in/'],
+    [/rti online|right to information/, 'https://rtionline.gov.in/'],
+    [/public grievance|grievance|complaint portal/, 'https://pgportal.gov.in/'],
+    [/jee|neet|nta|entrance exam/, 'https://www.nta.ac.in/'],
+    [/farmer|agriculture|crop|soil health|e-nam|kisan/, 'https://agricoop.gov.in/'],
+    [/employment|job seeker|national career service/, 'https://www.ncs.gov.in/']
+  ];
+  const match = routes.find(([pattern]) => pattern.test(text));
+  return match ? match[1] : 'https://services.india.gov.in/';
+}
+
 // ============================================
 // LOAD STATES
 // ============================================
@@ -66,17 +99,7 @@ async function load() {
   try {
     if (count) count.textContent = 'Loading services...';
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-    let response;
-    try {
-      response = await fetch(apiUrl('/api/services'), {
-        signal: controller.signal,
-        headers: { 'Accept': 'application/json' }
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await fetch(apiUrl('/api/services'));
 
     if (!response.ok) {
       throw new Error('Backend response error: ' + response.status);
@@ -85,7 +108,7 @@ async function load() {
     const data = await response.json();
 
     // Backend may return {total: 2496, services: [...]}
-    all = Array.isArray(data) ? data : data && data.services;
+    all = Array.isArray(data) ? data : data.services;
 
     if (!Array.isArray(all)) {
       throw new Error('Services data format is incorrect.');
@@ -104,7 +127,7 @@ async function load() {
 
     if (count) {
       count.textContent =
-        'Services could not load: ' + (error.name === 'AbortError' ? 'API timed out.' : error.message);
+        'Services could not load. Please check the Render API connection.';
     }
 
     if (servicesBox) {
@@ -230,6 +253,7 @@ function openApply(id) {
 
   $('applyForm').dataset.id = service.id;
   $('applyForm').dataset.category = service.category || '';
+  $('applyForm').dataset.officialUrl = getOfficialServiceUrl(service.name, service.category);
 
   if ($('formMessage')) $('formMessage').textContent = '';
   if ($('governmentFee')) $('governmentFee').value = '0';
@@ -375,10 +399,21 @@ if ($('applyForm')) {
       }
 
       if ($('formMessage')) {
+        const officialUrl = form.dataset.officialUrl || 'https://services.india.gov.in/';
         $('formMessage').textContent =
-          'Application draft saved. Reference: ' +
+          'Your service request is saved. Reference: ' +
           (result.reference || 'Received') +
-          '. Please complete the actual application through the authorized service channel.';
+          '. Continue on the official government portal to complete the application.';
+        const link = document.createElement('a');
+        link.href = officialUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.className = 'primary';
+        link.textContent = 'Continue to Official Government Website';
+        link.style.display = 'inline-block';
+        link.style.marginTop = '10px';
+        $('formMessage').appendChild(document.createElement('br'));
+        $('formMessage').appendChild(link);
       }
 
       form.reset();

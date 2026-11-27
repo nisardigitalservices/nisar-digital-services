@@ -25539,6 +25539,15 @@
       "status": "FREE_INFORMATION",
       "scope": "India / state-specific",
       "note": "Information and official portal guidance only. Verify eligibility, OTP requirements, fees and current availability on the official department website. No OTP bypass or unauthorized access."
+    },
+    {
+      "id": "portal-2497",
+      "name": "UTI PAN Card Application",
+      "category": "Identity, Aadhaar & Documents",
+      "icon": "🪪",
+      "status": "AUTHORIZATION_REQUIRED",
+      "scope": "India",
+      "note": "Apply through the official UTIITSL PAN portal. Verify eligibility and current government/provider fees on the official portal."
     }
   ]
 }

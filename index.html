@@ -7,10 +7,24 @@
 <form id="partnerLoginForm" class="login-form"><h3>Approved Partner Login</h3><label>Partner ID<input name="partnerId" required></label><label>Password<input name="password" type="password" required></label><button class="primary" type="submit">Login</button><p id="loginMessage" aria-live="polite"></p></form><a class="forgot-link" href="forgot-password.html">Forgot Password?</a>
 </section>
 <section class="panel" id="servicesPanel" hidden><div class="heading"><div><span class="eyebrow">SERVICE APPLICATION</span><h2 id="browseTitle">Find a service to apply</h2><p id="partnerWelcome"></p><a class="primary" href="recharge.html">Wallet Recharge</a></div></div>
+<div class="wallet-panel" id="walletPanel" aria-live="polite">
+  <div class="wallet-top"><div><span class="eyebrow">RETAILER / DISTRIBUTOR WALLET</span><h2>Valid Wallet Balance</h2><p class="wallet-help">Recharge credit minus service charges. Commission is shown separately.</p></div><button class="primary" id="refreshWallet" type="button">Refresh Balance & History</button></div>
+  <div class="wallet-cards"><div class="wallet-card"><small>Available / Valid Balance</small><strong id="validBalance">₹—</strong><small class="wallet-meta">Last valid recharge: <b id="lastRechargeDate">—</b></small></div><div class="wallet-card"><small>Commission Balance (separate)</small><strong id="commissionBalance">₹—</strong><small class="wallet-meta">Commission is not spendable wallet credit</small></div></div>
+  <div class="wallet-history-head"><h3>Wallet Transaction History</h3><span id="walletUpdated">Login to view your transactions</span></div>
+  <div class="wallet-table-wrap"><table class="wallet-table"><thead><tr><th>Date & Time</th><th>Transaction</th><th>Details</th><th>Amount</th><th>Status</th></tr></thead><tbody id="walletHistory"><tr><td colspan="5">Wallet history will appear after login.</td></tr></tbody></table></div>
+  <p class="wallet-note">Every recharge credit, service charge deduction and commission entry is recorded here. Commission is not added to the valid wallet balance.</p>
+</div>
 <div class="panel"><div class="selectors"><label>State / Union Territory<select id="state"></select></label><label>Search service<input id="search" placeholder="Search Aadhaar, PAN, Ration, Driving Licence..."></label></div><div class="filters" id="filters"></div><div class="count" id="count">Services load after partner login.</div><div class="services" id="services"></div></div></section>
 
 
 
+
+<section class="agent-widget" id="serviceAgent" aria-label="NISAR service help assistant">
+  <div class="agent-head"><div><b> NISAR Service Assistant</b><small>Ask about services, documents, fees or application links</small></div><button type="button" id="agentClear" aria-label="Clear chat">Clear</button></div>
+  <div class="agent-messages" id="agentMessages" aria-live="polite"><div class="agent-bubble agent-bot">Namaste! I can help you find a service and share basic service information. Please do not send Aadhaar numbers, OTPs, passwords or bank details.</div></div>
+  <form class="agent-form" id="agentForm"><input id="agentQuestion" maxlength="240" placeholder="Example: How to apply for PAN card?" autocomplete="off" required><button class="primary" type="submit">Send</button></form>
+  <a class="agent-human" href="https://wa.me/919346551871" target="_blank" rel="noopener">Need a human agent? Chat on WhatsApp</a>
+</section>
 <section class="support"><div><h2>Need help?</h2><p>Call / WhatsApp <b>9346551871</b></p></div><a class="primary" href="https://wa.me/919346551871">WhatsApp Support</a></section></main><footer>GOVERNMENT & DIGITAL SERVICES PORTAL • All India • No banking services</footer>
 <dialog id="applyDialog"><button class="close" id="close" type="button" aria-label="Close form">×</button><span class="eyebrow">SERVICE REQUEST</span><h2 id="applyName">Apply for service</h2><p id="applyCategory"></p><form id="applyForm"><label>Customer full name<input name="name" placeholder="Customer full name" required maxlength="80"></label><label>Customer mobile number<input name="mobile" placeholder="10-digit customer mobile" required pattern="[0-9]{10}" inputmode="numeric"></label>
 <label>Partner ID<input name="partnerIdDisplay" id="applyPartnerId" readonly></label>

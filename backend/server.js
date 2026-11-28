@@ -2,7 +2,7 @@ const express=require('express'),cors=require('cors'),fs=require('fs'),path=requ
 const catalog=require('./services.json'),app=express();
 app.use(cors());app.use(express.json({limit:'1mb'}));
 const DATA_DIR=process.env.DATA_DIR||__dirname;fs.mkdirSync(DATA_DIR,{recursive:true});
-const files={wallet:path.join(DATA_DIR,'recharge-data.json'),partners:path.join(DATA_DIR,'partner-registrations.json'),services:path.join(DATA_DIR,'service-requests.json')};
+const files={wallet:path.join(DATA_DIR,'recharge-data.json'),partners:path.join(DATA_DIR,'partner-registrations.json'),services:path.join(DATA_DIR,'service-requests.json'),passwordResets:path.join(DATA_DIR,'password-reset-requests.json')};
 function arr(f){try{let x=JSON.parse(fs.readFileSync(f,'utf8'));return Array.isArray(x)?x:[]}catch{return []}}
 function obj(f,def){try{return JSON.parse(fs.readFileSync(f,'utf8'))}catch{return def}}
 function write(f,x){fs.mkdirSync(path.dirname(f),{recursive:true});let t=f+'.tmp';fs.writeFileSync(t,JSON.stringify(x,null,2));fs.renameSync(t,f)}
@@ -52,6 +52,37 @@ app.get('/api/health',(q,s)=>s.json({ok:true,services:catalog.services.length}))
 app.get('/api/services',partnerAuth,(q,s)=>{let term=String(q.query.q||'').toLowerCase();let services=catalog.services.filter(x=>!term||(`${x.name} ${x.category}`).toLowerCase().includes(term));s.json({total:services.length,services})});
 app.get('/api/partner/me',partnerAuth,(q,s)=>s.json({partner:{name:q.partner.name,role:q.partner.role,partnerId:q.partner.partnerId,mobile:q.partner.mobile,state:q.partner.state,city:q.partner.city,district:q.partner.district,email:q.partner.email}}));
 app.post('/api/partner/login',(q,s)=>{if(!process.env.AUTH_SECRET)return s.status(503).json({message:'AUTH_SECRET is not configured on Render.'});let {partnerId,password}=q.body||{};let p=arr(files.partners).find(x=>x.partnerId===String(partnerId||'').trim()&&x.status==='Approved');if(!p||!p.passwordSalt||hash(String(password||''),p.passwordSalt)!==p.passwordHash)return s.status(401).json({message:'Invalid Partner ID or password, or Admin approval pending.'});s.json({token:tokenFor(p.partnerId),partner:{name:p.name,role:p.role,partnerId:p.partnerId,mobile:p.mobile}})});
+// Password reset without SMS OTP: partner submits a request; Admin verifies and approves it.
+app.post('/api/partner/password-reset-request',(q,s)=>{
+ const b=q.body||{},partnerId=String(b.partnerId||'').trim(),mobile=String(b.mobile||'').replace(/\D/g,''),newPassword=String(b.newPassword||'');
+ if(!partnerId||! /^[6-9]\d{9}$/.test(mobile)||newPassword.length<8)return s.status(400).json({message:'Enter Partner ID, registered 10-digit mobile and a password of at least 8 characters.'});
+ const partners=arr(files.partners),p=partners.find(x=>x.partnerId===partnerId&&x.mobile===mobile&&x.status==='Approved');
+ if(!p)return s.status(404).json({message:'Approved Partner ID and registered mobile do not match.'});
+ const requests=arr(files.passwordResets);
+ if(requests.some(x=>x.partnerId===partnerId&&x.status==='Pending'))return s.status(409).json({message:'A password reset request is already pending Admin verification.'});
+ const salt=crypto.randomBytes(16).toString('hex');
+ const request={reference:'NDS-PWR-'+Date.now(),partnerId,mobile,passwordSalt:salt,passwordHash:hash(newPassword,salt),status:'Pending',createdAt:new Date().toISOString()};
+ requests.push(request);write(files.passwordResets,requests);
+ s.status(201).json({message:'Password reset request submitted. It will work only after Admin approval.',reference:request.reference});
+});
+app.get('/api/admin/password-reset-requests',admin,(q,s)=>s.json({requests:arr(files.passwordResets).filter(x=>x.status==='Pending').map(({passwordSalt,passwordHash,...x})=>x)}));
+app.post('/api/admin/password-reset-requests/:reference/approve',admin,(q,s)=>{
+ const requests=arr(files.passwordResets),r=requests.find(x=>x.reference===q.params.reference);
+ if(!r)return s.status(404).json({message:'Password reset request not found.'});
+ if(r.status!=='Pending')return s.status(409).json({message:'Request already processed.'});
+ const partners=arr(files.partners),p=partners.find(x=>x.partnerId===r.partnerId&&x.mobile===r.mobile&&x.status==='Approved');
+ if(!p)return s.status(404).json({message:'Approved partner account not found.'});
+ p.passwordSalt=r.passwordSalt;p.passwordHash=r.passwordHash;p.passwordUpdatedAt=new Date().toISOString();
+ r.status='Approved';r.approvedAt=new Date().toISOString();write(files.partners,partners);write(files.passwordResets,requests);
+ s.json({message:'Password reset approved. The new password is now active.'});
+});
+app.post('/api/admin/password-reset-requests/:reference/reject',admin,(q,s)=>{
+ const requests=arr(files.passwordResets),r=requests.find(x=>x.reference===q.params.reference);
+ if(!r)return s.status(404).json({message:'Password reset request not found.'});
+ if(r.status!=='Pending')return s.status(409).json({message:'Request already processed.'});
+ r.status='Rejected';r.rejectedAt=new Date().toISOString();delete r.passwordSalt;delete r.passwordHash;write(files.passwordResets,requests);s.json({message:'Password reset request rejected.'});
+});
+
 app.post('/api/partner-registrations',(q,s)=>{let b=q.body||{},name=String(b.name||'').trim(),mobile=String(b.mobile||''),role=String(b.role||''),fee=role==='Retailer'?100:role==='Distributor'?200:0;let utr=String(b.utr||'').trim();if(name.length<2||! /^[6-9]\d{9}$/.test(mobile)||!fee||!b.state||!String(b.city||'').trim()||!String(b.district||'').trim()||!utr||!['Andhra Pradesh Grameena Bank QR','Airtel Payments Bank QR'].includes(b.bank))return s.status(400).json({message:'Please enter valid details, choose QR and submit UTR.'});let a=arr(files.partners);if(a.some(x=>x.mobile===mobile&&['Pending review','Approved'].includes(x.status)))return s.status(409).json({message:'An application already exists for this mobile.'});let reference='NDS-PART-'+Date.now();a.push({reference,name,mobile,role,fee,state:String(b.state),city:String(b.city||''),district:String(b.district||''),email:String(b.email||''),bank:b.bank,utr,status:'Pending review',createdAt:new Date().toISOString()});write(files.partners,a);s.status(201).json({message:'Registration submitted. Admin will verify payment and approve.',reference})});
 app.get('/api/admin/partners',admin,(q,s)=>s.json({applications:arr(files.partners).filter(x=>x.status==='Pending review')}));
 app.post('/api/admin/partners/:reference/approve',admin,(q,s)=>{let a=arr(files.partners),p=a.find(x=>x.reference===q.params.reference);if(!p)return s.status(404).json({message:'Application not found'});if(p.status!=='Pending review')return s.status(409).json({message:'Already processed'});p.status='Approved';p.partnerId=(p.role==='Retailer'?'NDSR':'NDSD')+p.mobile.slice(-6)+crypto.randomBytes(2).toString('hex').toUpperCase();let password=crypto.randomBytes(6).toString('base64url');p.passwordSalt=crypto.randomBytes(16).toString('hex');p.passwordHash=hash(password,p.passwordSalt);p.approvedAt=new Date().toISOString();write(files.partners,a);s.json({message:'Approved. Share these login credentials securely with partner.',partnerId:p.partnerId,temporaryPassword:password})});

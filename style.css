@@ -48,3 +48,5 @@ dialog{max-width:min(94vw,680px);max-height:88vh;overflow:auto}
 .forgot-link{display:block;margin:14px auto 0;background:transparent;border:0;color:#1459a6;text-decoration:underline;font-weight:700;cursor:pointer}
 .header-logout{min-height:42px;font-weight:700}
 @media(max-width:650px){.login-form{padding:20px 16px}.tools{gap:6px;flex-wrap:wrap}.tools .login{font-size:11px;padding:10px}}
+
+.wallet-summary{margin-top:14px;padding:14px;border:1px solid #dce5ef;border-radius:12px;background:#f7fbff;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.transaction-history{overflow:auto}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:10px;border-bottom:1px solid #dce5ef;text-align:left;font-size:13px}th{background:#f3f6fb;white-space:nowrap}
